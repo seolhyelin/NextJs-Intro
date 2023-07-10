@@ -1,17 +1,23 @@
 import { useEffect, useState } from "react";
 import Seo from "../components/Seo";
+import { Link } from "next/link";
 
-export default async function Home() {
-  const results = await fetchData();
-
+export default function Home({ results }) {
   return (
     <div className="container">
       <Seo title="Home" />
       {results?.map((movie) => (
-        <div className="movie" key={movie.id}>
-          <img src={`https://image.tmdb.org/t/p/w500/${movie.poster_path}`} />
-          <h4>{movie.original_title}</h4>
-        </div>
+        <Link key={movie.id} href={`/movies/${movie.id}`}>
+          <a>
+            <div className="movie">
+              <img
+                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                alt="포스터 이미지"
+              />
+              <h4>{movie.original_title}</h4>
+            </div>
+          </a>
+        </Link>
       ))}
       <style jsx>{`
         .container {
@@ -19,6 +25,9 @@ export default async function Home() {
           grid-template-columns: 1fr 1fr;
           padding: 20px;
           gap: 20px;
+        }
+        .movie {
+          cursor: pointer;
         }
         .movie img {
           max-width: 100%;
@@ -38,11 +47,13 @@ export default async function Home() {
   );
 }
 
-export async function fetchData() {
-  const response = await fetch("http://localhost:3000/api/movies", {
-    cache: "no-cache",
-  });
-  const { results } = await response.json();
-
-  return results;
+export async function getServerSideProps() {
+  const { results } = await (
+    await fetch(`http://localhost:3001/api/movies`)
+  ).json();
+  return {
+    props: {
+      results,
+    },
+  };
 }
